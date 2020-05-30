@@ -5,7 +5,7 @@ from scipy.spatial import distance
 import networkx as nx
 import matplotlib.pyplot as plt
 
-class PathFinder(object):
+class A_Star(object):
     def __init__(self, dfNode, dfEdge):
         self.dfEdge = dfEdge
         self.dfNode = dfNode
@@ -13,14 +13,15 @@ class PathFinder(object):
     def search(self, initial, goal, count):
         # count is the max number of path to search from initial to goal
         node = (0, initial, [], 0) # fCost, node, path, gCost
-        heap = []
-        heappush(heap, node)
+        heap = [node]
 
         goalInfo = self.dfNode.loc[self.dfNode['idNode'] == goal]
         goalX = int(goalInfo['x'])
         goalY = int(goalInfo['y'])
-        pathList = []
-        while (len(heap) > 0 and len(pathList) < count):
+
+        reachGoal = False
+        expanseNode = ()
+        while (not reachGoal):
             expanseNode = heappop(heap)
             currentTown = expanseNode[1]
             # print('Current Town: ', currentTown)
@@ -45,13 +46,12 @@ class PathFinder(object):
             
             else:
                 expanseNode[2].append(currentTown)
-                # print('Path: ', expanseNode[2])
-                pathList.append(expanseNode[2])
+                reachGoal = True
 
-        return pathList
+        return expanseNode[3]
 
 if __name__ == "__main__":
-    # Testing pathfinder with dummy data from Rinaldi Munir's presentation
+    # Testing pathfinder with dummy data from Mr. Rinaldi Munir's presentation 'Route/Path Planning using A Star and UCS'
     dataPath = os.path.join(os.getcwd(), os.pardir, 'data')
     print('Reading csv...')
     dfNode = pd.read_csv(os.path.join(dataPath, 'dummy_node.csv'), delim_whitespace=True, names=['idNode', 'x', 'y'])
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # print(dfNode)
     # print(dfEdge)
 
-    pathFinder = PathFinder(dfNode, dfEdge)
+    pathFinder = A_Star(dfNode, dfEdge)
     print('List of path:')
     print(pathFinder.search('A', 'B', 2))
 
