@@ -13,43 +13,41 @@ if __name__ == '__main__':
 
     pathFinder = A_Star(dfNode, dfEdge)
 
-    distanceMatrix = {}
     print('Creating Subgraph...')
     # Dummy user input
     requestedNodes = [1, 3, 19, 20, 30, 22, 39, 14]
-    addNode = []
+    dist = [[[] for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
     for i in range(len(requestedNodes)):
         # print('i: ', requestedNodes[i])
-        distanceMatrix[requestedNodes[i]] = {}
-        for j in range(i + 1, len(requestedNodes)):
+        for j in range(i, len(requestedNodes)):
             # print('j: ', requestedNodes[j])
             cost = pathFinder.search(requestedNodes[i], requestedNodes[j], 2)
-            distanceMatrix[requestedNodes[i]][requestedNodes[j]] = cost
-            # Tambahin buat matrix tar
+            dist[i][j] = cost
+            dist[j][i] = cost
 
+    print('Distance Matrix:')
+    print(dist)
     G = nx.Graph()
-    # dfDistanceMatrix = pd.DataFrame(columns=['idNodeStart', 'idNodeEnd', 'distance'])
-    for city1, v in distanceMatrix.items():
-        G.add_node(city1)
-        for city2, d in v.items():
-            G.add_node(city2)
-            G.add_edge(city1, city2, labels=d)
-            # dfDistanceMatrix = dfDistanceMatrix.append({'idNodeStart': city1, 'idNodeEnd': city2, 'distance': d}, ignore_index=True)
-    # print(dfDistanceMatrix)
 
-    # Alternatives for positioning nodes according to its coordinates (better used for full graph)
+    for i in range(len(dist)):
+        G.add_node(requestedNodes[i])
+        for j in range(len(dist[i])):
+            G.add_node(requestedNodes[j])
+            G.add_edge(requestedNodes[i], requestedNodes[j], labels=dist[i][j])
 
-    # pos ={}
-    # for node in requestedNodes:
-    #     nodePosition = dfNode.loc[dfNode['idNode'] == node]
-    #     x = int(nodePosition['x'])
-    #     y = int(nodePosition['y'])
-    #     pos[node] = (x, y)
+    # # Alternatives for positioning nodes according to its coordinates (better used for full graph)
 
-    # G = nx.from_pandas_edgelist(dfDistanceMatrix, 'idNodeStart', 'idNodeEnd')
+    # # pos ={}
+    # # for node in requestedNodes:
+    # #     nodePosition = dfNode.loc[dfNode['idNode'] == node]
+    # #     x = int(nodePosition['x'])
+    # #     y = int(nodePosition['y'])
+    # #     pos[node] = (x, y)
+
+    # # G = nx.from_pandas_edgelist(dfDistanceMatrix, 'idNodeStart', 'idNodeEnd')
 
     print('Drawing Subgraph...')
-    # plt.figure(3,figsize=(24, 24))
+    # # plt.figure(3,figsize=(24, 24))
 
     # Maximize figure windows (Currently work on Windows OS)
     # mng = plt.get_current_fig_manager()

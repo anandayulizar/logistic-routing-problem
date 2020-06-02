@@ -11,6 +11,9 @@ class A_Star(object):
         self.dfNode = dfNode
 
     def search(self, initial, goal, count):
+        if initial == count:
+            return 0
+
         # count is the max number of path to search from initial to goal
         node = (0, initial, [], 0) # fCost, node, path, gCost
         heap = [node]
