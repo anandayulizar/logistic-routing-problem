@@ -16,7 +16,7 @@ if __name__ == '__main__':
     print('Creating Subgraph...')
     # Dummy user input
     requestedNodes = [1, 3, 19, 20, 30, 22, 39, 14]
-    dist = [[[] for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
+    dist = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
     for i in range(len(requestedNodes)):
         # print('i: ', requestedNodes[i])
         for j in range(i, len(requestedNodes)):
