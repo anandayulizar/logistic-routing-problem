@@ -3,6 +3,7 @@ import os
 import networkx as nx
 import matplotlib.pyplot as plt
 from pathfinder import A_Star
+from aco import ACO
 
 if __name__ == '__main__':
     print('Reading csv...')
@@ -25,37 +26,44 @@ if __name__ == '__main__':
             dist[i][j] = cost
             dist[j][i] = cost
 
-    print('Distance Matrix:')
+    # print('Distance Matrix:')
+    # print(dist)
+    # G = nx.Graph()
+
+    # for i in range(len(dist)):
+    #     G.add_node(requestedNodes[i])
+    #     for j in range(len(dist[i])):
+    #         G.add_node(requestedNodes[j])
+    #         G.add_edge(requestedNodes[i], requestedNodes[j], labels=dist[i][j])
+
+    # # # Alternatives for positioning nodes according to its coordinates (better used for full graph)
+
+    # # # pos ={}
+    # # # for node in requestedNodes:
+    # # #     nodePosition = dfNode.loc[dfNode['idNode'] == node]
+    # # #     x = int(nodePosition['x'])
+    # # #     y = int(nodePosition['y'])
+    # # #     pos[node] = (x, y)
+
+    # # # G = nx.from_pandas_edgelist(dfDistanceMatrix, 'idNodeStart', 'idNodeEnd')
+
+    # print('Drawing Subgraph...')
+    # # # plt.figure(3,figsize=(24, 24))
+
+    # # Maximize figure windows (Currently work on Windows OS)
+    # # mng = plt.get_current_fig_manager()
+    # # mng.window.state('zoomed')
+    # labels = nx.get_edge_attributes(G, 'labels')
+    # nx.draw(G, pos=nx.kamada_kawai_layout(G), with_labels=True, dpi=100)
+    # nx.draw_networkx_edge_labels(G, pos=nx.kamada_kawai_layout(G), edge_labels=labels, label_pos=0.25)
+    # plt.show()
+
+    aco = ACO(50, 2, 1, 1, 0, dist)
+    path, cost = aco.solve()
+    print('Cost: ', cost)
+    print('Path: ', path)
+
     print(dist)
-    G = nx.Graph()
-
-    for i in range(len(dist)):
-        G.add_node(requestedNodes[i])
-        for j in range(len(dist[i])):
-            G.add_node(requestedNodes[j])
-            G.add_edge(requestedNodes[i], requestedNodes[j], labels=dist[i][j])
-
-    # # Alternatives for positioning nodes according to its coordinates (better used for full graph)
-
-    # # pos ={}
-    # # for node in requestedNodes:
-    # #     nodePosition = dfNode.loc[dfNode['idNode'] == node]
-    # #     x = int(nodePosition['x'])
-    # #     y = int(nodePosition['y'])
-    # #     pos[node] = (x, y)
-
-    # # G = nx.from_pandas_edgelist(dfDistanceMatrix, 'idNodeStart', 'idNodeEnd')
-
-    print('Drawing Subgraph...')
-    # # plt.figure(3,figsize=(24, 24))
-
-    # Maximize figure windows (Currently work on Windows OS)
-    # mng = plt.get_current_fig_manager()
-    # mng.window.state('zoomed')
-    labels = nx.get_edge_attributes(G, 'labels')
-    nx.draw(G, pos=nx.kamada_kawai_layout(G), with_labels=True, dpi=100)
-    nx.draw_networkx_edge_labels(G, pos=nx.kamada_kawai_layout(G), edge_labels=labels, label_pos=0.25)
-    plt.show()
 
     print('Done')
 
