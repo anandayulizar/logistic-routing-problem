@@ -1,8 +1,9 @@
-from random import randint, uniform
+from random import uniform
 
 class ACO(object):
-    def __init__(self, num_iteration, ant_count, alpha, beta, rho, distanceMatrix):
+    def __init__(self, num_iteration, salesman_count, ant_count, alpha, beta, rho, distanceMatrix):
         self.num_iteration  = num_iteration
+        self.salesman_count  = salesman_count
         self.ant_count  = ant_count
         self.alpha  = alpha
         self.beta  = beta
@@ -14,29 +15,21 @@ class ACO(object):
 
     def getProbability(self, i, j, visitedCity):
         tau = self.globalPheromone[i][j]
-        # print('i: ', i, 'j: ', j)
         eta = 1 / self.distanceMatrix[i][j]
         upper = (tau ** self.alpha) * (eta ** self.beta)
         down = 0
-        # print('loop buat down')
-        # print('visited city: ', visitedCity)
         for city in range(self.n):
             
-            if city not in visitedCity:
-                # print(city)
+            if city not in visitedCity and city != i:
                 tau = self.globalPheromone[i][city]
-                eta = 1 / self.distanceMatrix[i][j]
-                # print('tau: ', tau, 'eta: ', eta)
+                eta = 1 / self.distanceMatrix[i][city]
                 down += (tau ** self.alpha) * (eta ** self.beta)
-        
-        # print(upper / down)
 
         return upper / down
 
     def rouletteWheel(self, probabilityArr):
         rouletteIdx = []
         rouletteArr = []
-        # print('probArr: ', probabilityArr)
         for i in range(len(probabilityArr)):
             if probabilityArr[i] != 0:
                 rouletteIdx.append(i)
@@ -48,23 +41,13 @@ class ACO(object):
                 probabilityArr[i] = float('inf')
 
         choice = uniform(0, rouletteArr[0])
-        # print('choice: ',choice)
 
         ret = rouletteIdx[len(rouletteIdx) - 1]
-        # print('Roulette Arr: ',rouletteArr)
-        # print(probabilityArr)
-        # print(choice)
         for i in range(len(rouletteArr)):
             if (choice > rouletteArr[i]):
                 ret = rouletteIdx[i - 1]
             elif (choice == rouletteArr[i]):
                 ret = rouletteIdx[i]
-
-        # ret = 0
-        # for i in range(len(probabilityArr)):
-        #     if probabilityArr[i] > ret:
-        #         ret = i
-        
         
         return ret
 
@@ -81,92 +64,41 @@ class ACO(object):
         paths = []
         cost = 0
 
-        # for city in range(self.n):
-        #     currentCity = 0
-        #     visitedCity = []
-        #     visitedCity.append(currentCity)
-        #     while len(visitedCity) < self.n:
-        #         # print(visitedCity)
-        #         probabilityArr = []
-        #         for city in range(len(self.distanceMatrix[currentCity])):
-        #             if (city in visitedCity):
-        #                 probabilityArr.append(0)
-        #             else:
-        #                 probabilityArr.append(self.getProbability(currentCity, city, visitedCity))
-
-
-        #         nextCity = self.rouletteWheel(probabilityArr)
-        #         # print('current: ', currentCity, 'next: ', nextCity)
-        #         self.deltaPheromone[currentCity][nextCity] += 1 / self.distanceMatrix[currentCity][nextCity]
-        #         currentCity = nextCity
-        #         visitedCity.append(currentCity)
-
-        #     visitedCity.append(0)
-
-        # self.updateGlobalPheromone()
-        # self.resetDeltaPheromone()
-
-        for iteration in range(1, self.num_iteration):
-            # print('ITERATION: ', iteration)
-            # print('iterasi: ', iteration)
-            pathList = [[] for i in range(self.ant_count)]
-            visitedCity = []
+        for iteration in range(self.num_iteration):
             for ant in range(self.ant_count):
-                # print('Ant: ', ant)
-                currentCity = 0
-                pathList[ant].append(0)
-                # print('Jumlah path: ', len(pathList[ant]), 'Maksimal ngambil: ', self.n - len(visitedCity) - (2 * (self.ant_count - ant - 1)))
-                # print('self.n: ', self.n, 'self.ant_count: ', self.ant_count, 'ant: ', ant)
-                
-                while ((len(visitedCity) < self.n - 1) and ((len(pathList[ant]) < self.n - len(visitedCity) - (2 * (self.ant_count - ant - 1))) or (ant == self.ant_count - 1)) and (currentCity != 0 or len(pathList[ant]) == 1)) :
-                    # print(visitedCity)
+                pathList = [[] for i in range(self.salesman_count)]
+                visitedCity = []
+                for salesman in range(self.salesman_count):
+                    currentCity = 0
+                    pathList[salesman].append(0)
                     
-                    probabilityArr = []
-                    for city in range(len(self.distanceMatrix[currentCity])):
-                        if ((city in visitedCity) or (city == 0 and (len(pathList[ant]) < 3 or ant == self.ant_count - 1))):
-                            probabilityArr.append(0)
-                        else:
-                            probabilityArr.append(self.getProbability(currentCity, city, visitedCity))
+                    while ((len(visitedCity) < self.n - 1) and ((len(pathList[salesman]) < self.n - len(visitedCity) - (2 * (self.salesman_count - salesman - 1))) or (salesman == self.salesman_count - 1)) and (currentCity != 0 or len(pathList[salesman]) == 1)) :
+                        probabilityArr = []
+                        for city in range(len(self.distanceMatrix[currentCity])):
+                            if ((city in visitedCity) or (city == 0 and (len(pathList[salesman]) < 3 or salesman == self.salesman_count - 1))):
+                                probabilityArr.append(0)
+                            else:
+                                probabilityArr.append(self.getProbability(currentCity, city, visitedCity))
 
+                        nextCity = self.rouletteWheel(probabilityArr)
+                        self.deltaPheromone[currentCity][nextCity] += 1 / self.distanceMatrix[currentCity][nextCity]
+                        currentCity = nextCity
+                        if currentCity != 0:
+                            visitedCity.append(currentCity)
+                        pathList[salesman].append(currentCity)
 
-                    nextCity = self.rouletteWheel(probabilityArr)
-                    # print('current: ', currentCity, 'next: ', nextCity)
-                    self.deltaPheromone[currentCity][nextCity] += 1 / self.distanceMatrix[currentCity][nextCity]
-                    currentCity = nextCity
                     if currentCity != 0:
-                        visitedCity.append(currentCity)
-                    pathList[ant].append(currentCity)
-                    # print('visited: ', visitedCity)
+                        pathList[salesman].append(0)
 
-                if currentCity != 0:
-                    # visitedCity.append(0)
-                    pathList[ant].append(0)
-
-            paths = pathList
+                paths = pathList
 
             self.updateGlobalPheromone()
             self.resetDeltaPheromone()
-
-        # print(path)
-        # for i in range(len(visitedCity) - 1):
-        #     cost += self.distanceMatrix[path[i]][path[i+1]]
 
         cost = [0 for i in range(len(paths))]
         for i in range(len(paths)):
             for j in range(len(paths[i]) - 1):
                 cost[i] += self.distanceMatrix[paths[i][j]][paths[i][j+1]]
-
-
-
-        '''
-        for t=1 to num_iteration do
-            for k=1 to ant_count do
-                repeat until ant k has completed a tour
-                    select the city to be visited next with
-                    probability pij
-                calculate Lk
-            update trail levels
-        '''
 
         return paths, cost
 
@@ -179,8 +111,9 @@ if __name__ == "__main__":
     # distanceMatrix = [[[[0, 2, 7, 8], [6, 0, 3, 7], [5, 8, 0, 4], [7, 6, 9, 0]]]]
     
     print(distanceMatrix)
+    print('#' * 150)
 
-    aco = ACO(50, 1, 1, 1, 0, distanceMatrix)
+    aco = ACO(5, 1, 10, 1, 1, 0, distanceMatrix)
     path, cost = aco.solve()
     print('Cost: ', cost)
     print('Path: ', path)

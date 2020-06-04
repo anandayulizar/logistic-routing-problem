@@ -45,7 +45,7 @@ if __name__ == '__main__':
     nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25)
     plt.show()
 
-    aco = ACO(50, 2, 1, 1, 0, distanceMatrix)
+    aco = ACO(50, 3, 10, 1, 1, 0, distanceMatrix)
     paths, cost = aco.solve()
     print('Raw Cost: ', cost)
     print('Raw Paths: ', paths)
@@ -62,7 +62,6 @@ if __name__ == '__main__':
         subgraphLabels.append(f'Salesman {idx + 1}, cost: {cost[idx]}')
         for i in range(len(path) - 1):
             subgraph.add_edge(requestedNodes[path[i]], requestedNodes[path[i + 1]], color = colorList[idx], labels=distanceMatrix[path[i]][path[i + 1]])
-            # subgraph[requestedNodes[path[i]]][requestedNodes[path[i + 1]]].update({'color' : colorList[idx]})
 
 
     colors = nx.get_edge_attributes(subgraph,'color').values()
@@ -113,11 +112,10 @@ if __name__ == '__main__':
         resultRoadLabels.append(f'Salesman {idx + 1}: {path}')
         
         nx.draw_networkx_edges(resultRoadGraph, pos, with_labels=True, edgelist = edgeList, connectionstyle=f'arc3, rad = {rad}', edge_color=colorList[idx])
-        rad += 0.25
+        rad += 0.3
 
     resultRoadLabels = [ '\n'.join(wrap(l, 50)) for l in resultRoadLabels]
     print('Displaying road graph')
-    print(resultRoadLabels)
     plt.legend(resultRoadPatch, resultRoadLabels, loc='best')
     plt.show()
 
