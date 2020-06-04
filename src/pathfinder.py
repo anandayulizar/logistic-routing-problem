@@ -10,9 +10,7 @@ class A_Star(object):
         self.dfEdge = dfEdge
         self.dfNode = dfNode
 
-    def search(self, initial, goal, count):
-        if initial == count:
-            return 0
+    def search(self, initial, goal):
 
         # count is the max number of path to search from initial to goal
         node = (0, initial, [], 0) # fCost, node, path, gCost
@@ -44,14 +42,14 @@ class A_Star(object):
                         path = []
                         for town in expanseNode[2]:
                             path.append(town)
-                        path.append(currentTown)
+                        path.append(int(currentTown))
                         heappush(heap, (fCost, neighborTown, path, gCost))
             
             else:
-                expanseNode[2].append(currentTown)
+                expanseNode[2].append(int(currentTown))
                 reachGoal = True
 
-        return expanseNode[3]
+        return expanseNode[2], expanseNode[3]
 
 if __name__ == "__main__":
     # Testing pathfinder with dummy data from Mr. Rinaldi Munir's presentation 'Route/Path Planning using A Star and UCS'
@@ -64,12 +62,14 @@ if __name__ == "__main__":
 
     pathFinder = A_Star(dfNode, dfEdge)
     print('List of path:')
-    print(pathFinder.search('A', 'B', 2))
+    path, cost = pathFinder.search('A','B')
 
-    G = nx.from_pandas_edgelist(dfEdge, 'idNodeStart', 'idNodeEnd')
+    print(f'Path: {path}\n Cost: {cost}')
 
-    print('Drawing graph...')
-    nx.draw(G, pos=nx.spring_layout(G), with_labels=True)
-    plt.show()
+    # G = nx.from_pandas_edgelist(dfEdge, 'idNodeStart', 'idNodeEnd')
 
-    print('Done')
+    # print('Drawing graph...')
+    # nx.draw(G, pos=nx.spring_layout(G), with_labels=True)
+    # plt.show()
+
+    # print('Done')
