@@ -69,16 +69,17 @@ Library yang diperlukan juga tertera pada file requirements.txt
 
 
 ## Installing
-**Install python**, Untuk install python, dapat mengunjungi [Website Python](python.org) dan download versi yang bersangkutan
+**Install python**
+Untuk install python, dapat mengunjungi [Website Python](python.org) dan download versi yang bersangkutan
 
-**Install pip**,
+**Install pip**
 1. Download [get-pip.py](https://bootstrap.pypa.io/get-pip.py)
 2. Jalankan command ini di dalam folder dimana get-pip.py berada
 ```
 python get-pip.py
 ```
 
-**Install Library-library**
+**Install Library**
 Untuk install library-library yang digunakan, dapat menjalankan command berikut ini 
 ```
 pip install -r requirements.txt
@@ -88,6 +89,18 @@ Jika command tersebut tidak bisa di jalankan, untuk setiap library yang terdapat
 ```
 pip install [nama-library]
 ```
+
+## How to Run
+1. Buka folder dari repository ini
+2. Lakukan command 
+'''
+cd src
+'''
+3. Jalankan command
+'''
+python main.py
+'''
+4. Ikuti petunjuk yang terdapat pada program
 
 ## Referensi Penguji
 Silahkan gunakan referensi berikut sebagai awal pengerjaan tugas:<br>
