@@ -14,62 +14,96 @@ Setiap beberapa jam sekali, sebuah perusahaan logistik akan mengirimkan beberapa
 ## Multiple-Agent TSP
 Masalah pengantaran barang untuk satu kendaraan dengan fungsi objektif jarak minimal dapat dimodelkan oleh Travelling Salesman Problem. Akan tetapi, perusahaan logistik biasanya memiliki lebih dari satu kendaraan yang berangkat bersamaan, sehingga TSP kurang cocok digunakan. Generalisasi TSP untuk beberapa agen adalah **multiple-agent TSP (mTSP)**, dan model masalah ini akan kita gunakan. Pada mTSP, akan terdapat *m* tur yang akan dibangun. Syarat dari semua tur mirip dengan TSP, yaitu bahwa seluruh tur akan kembali ke simpul awal (mewakili kantor pusat) dan setiap tujuan hanya akan dilewati oleh satu tur.
 
-## Tugas
-Kita akan menggunakan dataset jalanan pada kota Oldenburg yang dapat diakses pada <a href="https://www.cs.utah.edu/~lifeifei/SpatialDataset.htm">tautan ini.</a> Lakukan pengunduhan untuk kedua data jalanan di kota Oldenburg. Data pertama merupakan koordinat simpul, data kedua merupakan data sisi antar simpul. Asumsikan seluruh jalan dua arah.<br> 
-Seperti yang disebutkan sebelumnya, kita akan menggunakan pendekatan mTSP dalam permasalahan ini. Untuk mempermudah anda dan mempermudah penilaian, tugas akan dibagi dalam beberapa tahap.
+## Pathfinding
+Pada permasalahan Logistic Routing Problem ini, pathfinding digunakan untuk mencari rute terpendek antara titik-titik yang dicantumkan dalam pembangunan upagraf. Dalam mencari rute optimal dari suatu titik ke titik lain, pada program ini author menggunakan pendekatan dengan algoritma A*. Algoritma A* merupakan pengembangan dari algoritma Djikstra. Algoritma A* mengevaluasi cost dari suatu titik dengan menjumlahkan jarak yang telah dilalui untuk menuju titik tersebut dengan menerapkan heuristik, yaitu perkiraan jarak yang diperlukan untuk menuju titik tujuan. Cost yang telah dievaluasi akan disimpan dalam suatu container (list/array, priority queue, dll) dan pada setiap iterasi akan dipilih node dengan cost terendah dan akan terus berulang sampai ditemukan solusi. Perilaku evaluasi di diformulasikan menjadi f(n) = g(n) + h(n).
+f(n) = Total cost dari suatu titik
+g(n) = Total jarak yang telah dilalui dari titik awal menuju titik n
+h(n) = Perkiraan jarak dari titik n menuju titik tujuan
 
-### Milestone 1
-Pada milestone 1, anda diminta untuk membangun sebuah upagraf dari graf jalan keseluruhan kota Oldenburg. Upagraf tersebut merupakan sebuah graf lengkap tak berarah, dengan simpul-simpulnya adalah titik tujuan pengiriman barang ditambah titik yang mewakili kantor pusat perusahaan logistik. Simpul-simpul tersebut merupakan masukan program yang dimasukkan oleh pengguna, dengan format masukan bebas. Hasilkan sebuah matriks jarak antar simpul upagraf lengkap. Nilai untuk milestone pertama maksimal adalah **600**.
+Dalam program ini, fungsi h(n) didefinisikan sebagai jarak euclidian dari titik n ke titik tujuan.
 
-### Milestone 2
-Pada Milestone 2 , anda akan menggunakan upagraf yang telah dihasilkan pada Milestone 1 untuk membangun rute dari para kurir dengan pendekatan mTSP. Tampilkan rute yang diambil oleh tiap kurir. Nilai maksimal pada milestone kedua adalah **1500**
+## Multiple Traveling Salesman Problem (mTSP)
+Untuk mencari solusi bagi permasalahan mTSP pada program ini, author melakukan pendekatan dengan memanfaatkan algoritma Ant Colony Optimization. Ant Colony Optimization (ACO) merupakan salah satu jenis pengembangan paradigma yang digunakan untuk menyelesaikan masalah optimasi yang terinspirasi oleh perilaku kkumpulan serangga. ACO adalah teknik probabilitas berdasarkan perilaku semut dalam mencari makanan. Dalam mencari makanan, semut akan meninggalkan pheromone pada jalur yang dilaluinya yang bertindak sebagai suatu sinyal bagi semut lain. Semakin besar tingkat pheromone pada suatu jalur, semakin besar kemungkinan semut lain akan memilih jalur tersebut dan akan semakin memperkuat pheromone di jalur tersebut. Umumnya jalur tersebut merupakan jalur terpendek.
 
-### Milestone 3
-Setelah berhasil mendapatkan rute bagi para kurir, selanjutnya anda diminta untuk menggambarkan rute dari para kurir. Visualisasi rute  minimal membedakan warna rute untuk tiap kurir dan menampilkan upagraf yang digunakan untuk membuat rute. Nilai lebih akan diberikan jika anda dapat menampilkan rute beserta seluruh peta jalan di kota Oldenburg. Nilai minimal adalah **800** dan nilai maksimal adalah **1500**
+Pada mTSP dengan pendekatan ACO pada Logistic Routing Problem, akan terdapat sejumlah iterasi. Di setiap iterasi, jumlah semut merupakan jumlah salesman. Setiap semut dapat mengunjungi sejumlah kota dengan batasan berikut:
+<br>
+<img src="assets/salesmanconstraint.jpg">
+<br>
+tni         : jumlah node yang dikunjungi semut i
+li          : maksimal jumlah node yang dapat dikunjungi semut i
+m           : jumlah salesman
+n           : jumlah titik
+Pada program ini, author menetapkan minimal satu salesman mengunjungi 2 node selain node awal supaya terbentuk sirkuit hamilton.
+Semut pertama akan menyelusuri jalur terlebih dahulu. Dalam menentukan node mana yang akan dikunjungi untuk menentukan jalur, akan digunakan rumus berikut untuk menentukan probabilitas mengunjungi setiap node yang bertetangga dan dapat dikunjungi dari node yang sekarang ditempati:
+<br>
+<img src="assets/probability.jpg">
+<br>
+τij         : tingkatpheromone antara node i dan j
+ηij         : visibilitas dari i terhadap node j
+α           : parameter tingkat influence dari τ
+β           : parameter tingkat influence dari η
+allowedk    : node yang belum dikunjungi
 
-## Pengerjaan
-Tugas ini individual.<br>
-Lakukan *fork* terhadap *repository* ini.<br>
-Spek tugas cukup umum, sehingga asisten tidak membatasi algoritma maupun bahasa pemrograman yang digunakan, walaupun **penggunaan Python disarankan**. Algoritma yang digunakan untuk pathfinding harus optimal, namun hasil dari mTSP tidak harus optimal (*Note : beberapa pustaka optimization bisa menghasilkan solusi sub-optimal dalam batas waktu tertentu*). Bila merasa sudah menyelesaikan tugas, silahkan lakukan pull request dan hubungi asisten lewat email untuk melakukan demo.<br>
-Pastikan ada menambahkan/menggati README ini saat mengumpulkan. README minimal mengandung :
+Tiap hasil probabilitas akan disimpan dalam suatu list dan akan dipilih satu titik dengan menggunakan roulette wheel. Lalu, semut akan meng-update feromon pada edge tersebut dengan menggunakan rumus berikut ini
+<br>
+<img src="assets/pheromone.jpg">
+<br>
+τij(t)      : Intensitas pheromone pada iterasi ke-t
+ρ           : Parameter evaporasi feromon [0, 1] 
+Δτij        : Total Penambahan intensitas pheromone suatu edge saat suatu iterasi
+Δτijk       : Penambahan pheromone suatu edge yang disebabkan semut k
 
-1. Pendekatan algoritma yang digunakan untuk pathfinding dan penyelesaian mTSP, serta 
-2. Cara menjalankan program, termasuk instalasi pustaka bila menggunakan bermacam pustaka
+Pada akhir setiap iterasi, delta pheromon akan ditambahkan ke global pheromon yang telah tersedia. Hal ini akan terus berulang sampai semut kembali ke titik awal. Setelah suatu semut kembali ke titik awal, semut-semut berikutnya akan menyelusuri jalur dengan node-node yang belum dikunjungi oleh semut-semut sebelumnya. Tiap iterasi total cost akan diupdate dengan cost terkecil sampai iterasi selesai dan mengembalikan cost dan jalur dari tiap salesman.
 
-Anda bebas menggunakan pustaka maupun referensi apapun untuk mengerjakan tugas, kecuali kode/pustaka jadi yang melakukan *routing*, karena tujuan tugas adalah membuat sebuah prototipe pembuatan rute. Pastikan anda mencantumkan sumber bilamana anda menggunakan kode dari orang lain. Akan tetapi, pemahaman terhadap solusi masalah menjadi bagian penting dari penilaian , sehingga anda disarankan untuk menuliskan kode anda sendiri.<br>
 
-## Penilaian
-Nilai maksimal non-bonus adalah **4200**. Penilaian akan dilakukan berdasarkan : 
-1. kode sumber,
-2. pendekatan solusi, 
-2. demo aplikasi dan ,
-3. pemahaman terhadap solusi masalah.
+## Prerequisites
+Berikut merupakan daftar prerequisite yang dibutuhkan pada program ini. Versi yang tertera merupakan versi yang digunakan author saat pembuatan program ini. 
+* python 3.8.3
+* pip 20.1.1
+* matplotlib 3.2.1
+* scipy 1.4.1
+* networkx 2.4
+* numpy 1.18.4
 
-Untuk poin (1) dan poin (2) , nilai maksimal adalah **3600** dari ketiga milestone.<br> 
-Demo hanya dapat dilakukan sekali. Demo bernilai **600** poin. Pada demo, anda akan menunjukkan hasil aplikasi dan akan terdapat tanya jawab untuk menguji pemahaman.<br>
-Asisten juga akan menjalankan **plagiarism checking** antar kode sumber peserta. Bila ditemukan adanya kecurangan, maka nilai peserta bersangkutan adalah 0 tanpa pengubahan, dan pengurangan poin maksimal tidak akan berlaku. Perhatikan bahwa selama anda mencantumkan asal kode yang anda salin , tidak menggunakan pustaka untuk *routing* dan tidak menyalin kode milik teman anda, anda tidak akan mendapat masalah.
+Library yang diperlukan juga tertera pada file requirements.txt
 
-## Bonus
-Bonus **300** poin diberikan jika anda dapat mengirimkan hasil algoritma beserta beberapa contoh masukan/keluaran untuk kasus kota San Francisco , dengan jumlah jalanan yang lebih besar dari Kota Oldenburg. Dataset dapat diambil di website yang sama.
 
-## Kontak
-Silahkan hubungi asisten lewat line @alamhasabiebaru atau lewat email 13517096@std.stei.itb.ac.id dengan subjek diawal tulisan \[SELEKSI IRK\] . *Note : waktu menjawab bervariasi, namun email biasanya akan dibalas kurang dari sehari. Line mungkin tidak dibalas dalam waktu satu-dua hari. Mohon bersabar :)*. Pertanyaan juga dipersilahkan. Jawaban akan diposting dalam bagian QnA README ini.
+## Installing
+**Install python**, Untuk install python, dapat mengunjungi [Website Python](python.org) dan download versi yang bersangkutan
 
-## QnA
-- Bagaimana penentuan upagraf ? Apakah bebas oleh developer ?<br>
-Upagraf dibangun dari masukan simpul-simpul tujuan dan simpul kantor pusat. Masukan tersebut berasal dari pengguna, namun developer bebas menentukan format masukan simpul.
-- Bagaimana cara menghitung jarak dua simpul pada upagraf ? Apakah menggunakan jarak koordinat kedua simpul atau menggunakan data jalan, walaupun kedua simpul tidak bertetangga ?<br>
-Tentunya kendaraan kurir bergerak di atas jalanan, tidak bergerak lurus antara du simpul :)  Selain itu, sebuah simpul dapat mencapai simpul lainnya dengan menelusuri jalan. Lakukan penelusuran untuk mendapatkan jaraknya. 
-- Apakah program menggunakan GUI atau command-based ?<br>
-Dibebaskan.
+**Install pip**,
+1. Download [get-pip.py](https://bootstrap.pypa.io/get-pip.py)
+2. Jalankan command ini di dalam folder dimana get-pip.py berada
+```
+python get-pip.py
+```
 
-## Referensi
+**Install Library-library**
+Untuk install library-library yang digunakan, dapat menjalankan command berikut ini 
+```
+pip install -r requirements.txt
+```
+
+Jika command tersebut tidak bisa di jalankan, untuk setiap library yang terdapat pada requirements.txt dapat dijalankan command berikut ini
+```
+pip install [nama-library]
+```
+
+## Referensi Penguji
 Silahkan gunakan referensi berikut sebagai awal pengerjaan tugas:<br>
 [1] Dataset : https://www.cs.utah.edu/~lifeifei/SpatialDataset.htm<br>
 [2] Pengenalan dan formulasi mTSP : https://neos-guide.org/content/multiple-traveling-salesman-problem-mtsp<br>
 [3] MIP , pustaka Python untuk optimisasi : https://python-mip.readthedocs.io/en/latest/intro.html<br>
 [4] OpenGL untuk Python : https://stackabuse.com/brief-introduction-to-opengl-in-python-with-pyopengl/<br>
 [5]  Li, Feifei, Dihan Cheng, Marios Hadjieleftheriou, George Kollios, and Shang-Hua Teng. "On trip planning queries in spatial databases." In International symposium on spatial and temporal databases, pp. 273-290. Springer, Berlin, Heidelberg, 2005.
+
+## Referensi Author
+[1] Susilo, B., Efendi, R., Maulinda, S., 2011. Implementasi dan Analisa Kinerja Algoritm Ant System dalam Penyelesaian Multiple Traveling Salesman Problem (MTSP). Seminar Nasional Aplikasi Teknologi Informasi 2011 (SNATI 2011). Yogyakarta, 17-18 Juni 2011
+[2] ScienceDirect.com. (2008, 27 September). An ant colony optimization method for generalized TSP problem. Diakses pada 2 Juni 2020, dari https://www.sciencedirect.com/science/article/pii/S1002007108002736#:~:text=3.,nest%20without%20using%20visual%20cues.
+[3] Mirjalili, Ali. "How the Ant Colony Optimization algorithm works" Youtube, upload oleh Ali Mirjalili, 4 Oktober 2018, https://www.youtube.com/watch?v=783ZtAF4j5g
+[4] Munir, Rinaldi. Route/Path Planning Using A Star and UCS. http://informatika.stei.itb.ac.id/~rinaldi.munir/Stmik/2017-2018/A-Star-Best-FS-dan-UCS-(2018).pdf Diakses pada tanggal 1 Juni 2020
+
+Halligan, Meredith. "Amazing Animal Videos." YouTube, uploaded by shellyg123, 6 May 2017, www.youtube.com/watch?v=43q50948590.
 
 ## Credits
 Thank you for Li Fei Fei et. al. for providing the data.

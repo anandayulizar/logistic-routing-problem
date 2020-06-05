@@ -23,48 +23,49 @@ if __name__ == '__main__':
     pathFinder = A_Star(nodeFile, edgeFile)
 
 
-    maxNode = len(pathFinder.getNodeDict().keys()) - 1
-    inputChoice = int(input('How do you want to input the nodes?\n1. Input Manually\n2. Input Random Nodes\n'))
-    n = int(input('Please enter the maximum number of nodes: '))
-    requestedNodes = []
+    # maxNode = len(pathFinder.getNodeDict().keys()) - 1
+    # inputChoice = int(input('How do you want to input the nodes?\n1. Input Manually\n2. Input Random Nodes\n'))
+    # n = int(input('Please enter the maximum number of nodes: '))
+    # requestedNodes = []
     
 
-    if (n == 1):
-        while len(requestedNodes) < n:
-            nodeInput = int(input('Please enter a new node:'))
-            if (nodeInput < maxNode):
-                requestedNodes.append(nodeInput)
-    else:
-        bound = int(input('Do you want to bound the generated random numbers to a range to speed up time? (The generated nodes will be in a range of 500)\n1. Yes\n2. No\n'))
-        if (bound == 1):
-            lowerBound = random.randint(0, maxNode - 500)
-            nodeList = list(range(lowerBound, lowerBound + 500))
-        else:
-            nodeList = list(range(maxNode))
-        random.shuffle(nodeList)
-        while len(requestedNodes) < n:
-            nodeInput = nodeList.pop()
-            requestedNodes.append(nodeInput)
+    # if (n == 1):
+    #     while len(requestedNodes) < n:
+    #         nodeInput = int(input('Please enter a new node:'))
+    #         if (nodeInput < maxNode):
+    #             requestedNodes.append(nodeInput)
+    # else:
+    #     bound = int(input('Do you want to bound the generated random numbers to a range to speed up time? (The generated nodes will be in a range of 250)\n1. Yes\n2. No\n'))
+    #     if (bound == 1):
+    #         lowerBound = random.randint(0, maxNode - 250)
+    #         nodeList = list(range(lowerBound, lowerBound + 250))
+    #     else:
+    #         nodeList = list(range(maxNode))
+    #     random.shuffle(nodeList)
+    #     while len(requestedNodes) < n:
+    #         nodeInput = nodeList.pop()
+    #         requestedNodes.append(nodeInput)
 
-    salesmanCount = int(input('Please enter the number of salesmen: '))
-    while (salesmanCount > (n / 2)):
-        print('The number of salesman can\'t exceed half of requested nodes')
-        salesmanCount = int(input('Please enter the number of salesmen: '))
+    # salesmanCount = int(input('Please enter the number of salesmen: '))
+    # while (salesmanCount > (n / 2)):
+    #     print('The number of salesman can\'t exceed half of requested nodes')
+    #     salesmanCount = int(input('Please enter the number of salesmen: '))
 
-    alpha = 1
-    beta = 1
-    rho = 1
-    iterCount = 50
-    modifyParam = int(input('Do you want to modify ACO parameters? (Default alpha = 1, beta = 1, rho = 1, number of iteration = 50)\n1. Yes\n2. No\n'))
-    if modifyParam == 1:
-        alpha = int(input('Please enter alpha: '))
-        beta = int(input('Please enter beta: '))
-        rho = int(input('Please enter rho: '))
+    # alpha = 1
+    # beta = 1
+    # rho = 1
+    # iterCount = 50
+    # modifyParam = int(input('Do you want to modify ACO parameters? (Default alpha = 1, beta = 1, rho = 1, number of iteration = 50)\n1. Yes\n2. No\n'))
+    # if modifyParam == 1:
+    #     alpha = int(input('Please enter alpha: '))
+    #     beta = int(input('Please enter beta: '))
+    #     rho = int(input('Please enter rho: '))
 
     # print('Creating Subgraph...')
     # # Dummy user input
+    
+    requestedNodes = [5447, 5454, 5465, 5540, 5495, 5470, 5644, 5627]
     print(requestedNodes)
-    # requestedNodes = [5447, 5454, 5465, 5540, 5495, 5470, 5644, 5627]
 
     distanceMatrix = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
     pathMatrix = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
@@ -77,6 +78,11 @@ if __name__ == '__main__':
             pathMatrix[i][j] = path
             pathMatrix[j][i] = path[::-1]
 
+    for distancePerCity in distanceMatrix:
+        for distance in distancePerCity:
+            print(distance, end=' ')
+        print()
+
     subgraph = nx.Graph()
     subgraph.add_nodes_from(requestedNodes)
     for i in range(len(distanceMatrix)):
@@ -88,7 +94,7 @@ if __name__ == '__main__':
     colors = nx.get_edge_attributes(subgraph, 'color')
     
     nx.draw(subgraph, pos=nx.kamada_kawai_layout(subgraph), with_labels=True, dpi=100)
-    nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25)
+    # nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25)
     plt.show()
 
     aco = ACO(30, 2, 1, 1, 0, distanceMatrix)
@@ -117,8 +123,8 @@ if __name__ == '__main__':
 
     print('Displaying colored subgraph...')
     nx.draw(subgraph, pos=nx.kamada_kawai_layout(subgraph), with_labels=True, dpi=100)
-    nx.draw_networkx_edges(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25, edge_color=colors)
-    nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25)
+    nx.draw_networkx_edges(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_color=colors)
+    nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.5)
     plt.legend(subgraphPatch, subgraphLabels, loc='best')
     plt.show()
 
@@ -145,7 +151,7 @@ if __name__ == '__main__':
     resultRoadGraph.add_nodes_from(requestedNodes, color='crimson')
     colors = nx.get_node_attributes(resultRoadGraph,'color').values()
 
-    pos=nx.spring_layout(resultRoadGraph)
+    pos=nx.kamada_kawai_layout(resultRoadGraph)
 
     nx.draw(resultRoadGraph, pos, with_labels=True, dpi=100, edge_color=(0,0,0,0), node_color=colors)
 
