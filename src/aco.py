@@ -1,10 +1,9 @@
 from random import uniform
 
 class ACO(object):
-    def __init__(self, num_iteration, salesman_count, ant_count, alpha, beta, rho, distanceMatrix):
+    def __init__(self, num_iteration, salesman_count, alpha, beta, rho, distanceMatrix):
         self.num_iteration  = num_iteration
         self.salesman_count  = salesman_count
-        self.ant_count  = ant_count
         self.alpha  = alpha
         self.beta  = beta
         self.rho  = rho
@@ -65,32 +64,31 @@ class ACO(object):
         cost = 0
 
         for iteration in range(self.num_iteration):
-            for ant in range(self.ant_count):
-                pathList = [[] for i in range(self.salesman_count)]
-                visitedCity = []
-                for salesman in range(self.salesman_count):
-                    currentCity = 0
-                    pathList[salesman].append(0)
-                    
-                    while ((len(visitedCity) < self.n - 1) and ((len(pathList[salesman]) < self.n - len(visitedCity) - (2 * (self.salesman_count - salesman - 1))) or (salesman == self.salesman_count - 1)) and (currentCity != 0 or len(pathList[salesman]) == 1)) :
-                        probabilityArr = []
-                        for city in range(len(self.distanceMatrix[currentCity])):
-                            if ((city in visitedCity) or (city == 0 and (len(pathList[salesman]) < 3 or salesman == self.salesman_count - 1))):
-                                probabilityArr.append(0)
-                            else:
-                                probabilityArr.append(self.getProbability(currentCity, city, visitedCity))
+            pathList = [[] for i in range(self.salesman_count)]
+            visitedCity = []
+            for salesman in range(self.salesman_count):
+                currentCity = 0
+                pathList[salesman].append(0)
+                
+                while ((len(visitedCity) < self.n - 1) and ((len(pathList[salesman]) < self.n - len(visitedCity) - (2 * (self.salesman_count - salesman - 1))) or (salesman == self.salesman_count - 1)) and (currentCity != 0 or len(pathList[salesman]) == 1)) :
+                    probabilityArr = []
+                    for city in range(len(self.distanceMatrix[currentCity])):
+                        if ((city in visitedCity) or (city == 0 and (len(pathList[salesman]) < 3 or salesman == self.salesman_count - 1))):
+                            probabilityArr.append(0)
+                        else:
+                            probabilityArr.append(self.getProbability(currentCity, city, visitedCity))
 
-                        nextCity = self.rouletteWheel(probabilityArr)
-                        self.deltaPheromone[currentCity][nextCity] += 1 / self.distanceMatrix[currentCity][nextCity]
-                        currentCity = nextCity
-                        if currentCity != 0:
-                            visitedCity.append(currentCity)
-                        pathList[salesman].append(currentCity)
-
+                    nextCity = self.rouletteWheel(probabilityArr)
+                    self.deltaPheromone[currentCity][nextCity] += 1 / self.distanceMatrix[currentCity][nextCity]
+                    currentCity = nextCity
                     if currentCity != 0:
-                        pathList[salesman].append(0)
+                        visitedCity.append(currentCity)
+                    pathList[salesman].append(currentCity)
 
-                paths = pathList
+                if currentCity != 0:
+                    pathList[salesman].append(0)
+
+            paths = pathList
 
             self.updateGlobalPheromone()
             self.resetDeltaPheromone()
@@ -113,7 +111,7 @@ if __name__ == "__main__":
     print(distanceMatrix)
     print('#' * 150)
 
-    aco = ACO(5, 1, 10, 1, 1, 0, distanceMatrix)
+    aco = ACO(5, 1, 1, 1, 0, distanceMatrix)
     path, cost = aco.solve()
     print('Cost: ', cost)
     print('Path: ', path)

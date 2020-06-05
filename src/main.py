@@ -5,31 +5,77 @@ import matplotlib.pyplot as plt
 from pathfinder import A_Star
 from aco import ACO
 import numpy as np
-import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 from textwrap import wrap
+import random
+import time
 
 if __name__ == '__main__':
-    print('Reading csv...')
+    print('Welcome to Logistic Routing Problem Program! \nThis problem is a Multiple Traveling Salesman Problem (mTSP) that will be solved using Ant Colony Optimization.')
+    townChoice = int(input('Please choose a town to be the test case!\n1. Oldenburgh\n2. San Fransisco\n'))
+    selectedTown = 'OL' if townChoice == 1 else 'SF'
+
     # Reading road data files to pandas
     dataPath = os.path.join(os.getcwd(), os.pardir, 'data')
-    dfNode = pd.read_csv(os.path.join(dataPath, 'OL_node.csv'), delim_whitespace=True, names=['idNode', 'x', 'y'])
-    dfEdge = pd.read_csv(os.path.join(dataPath, 'OL_edge.csv'), delim_whitespace=True, names=['idEdge', 'idNodeStart', 'idNodeEnd', 'distance'])
 
-    pathFinder = A_Star(dfNode, dfEdge)
+    nodeFile = os.path.join(dataPath, selectedTown + '_node.txt')
+    edgeFile = os.path.join(dataPath, selectedTown + '_edge.txt')
+    pathFinder = A_Star(nodeFile, edgeFile)
 
-    print('Creating Subgraph...')
-    # Dummy user input
-    requestedNodes = [1, 3, 19, 20, 30, 22, 39, 14]
+
+    maxNode = len(pathFinder.getNodeDict().keys()) - 1
+    inputChoice = int(input('How do you want to input the nodes?\n1. Input Manually\n2. Input Random Nodes\n'))
+    n = int(input('Please enter the maximum number of nodes: '))
+    requestedNodes = []
+    
+
+    if (n == 1):
+        while len(requestedNodes) < n:
+            nodeInput = int(input('Please enter a new node:'))
+            if (nodeInput < maxNode):
+                requestedNodes.append(nodeInput)
+    else:
+        bound = int(input('Do you want to bound the generated random numbers to a range to speed up time? (The generated nodes will be in a range of 500)\n1. Yes\n2. No\n'))
+        if (bound == 1):
+            lowerBound = random.randint(0, maxNode - 500)
+            nodeList = list(range(lowerBound, lowerBound + 500))
+        else:
+            nodeList = list(range(maxNode))
+        random.shuffle(nodeList)
+        while len(requestedNodes) < n:
+            nodeInput = nodeList.pop()
+            requestedNodes.append(nodeInput)
+
+    salesmanCount = int(input('Please enter the number of salesmen: '))
+    while (salesmanCount > (n / 2)):
+        print('The number of salesman can\'t exceed half of requested nodes')
+        salesmanCount = int(input('Please enter the number of salesmen: '))
+
+    alpha = 1
+    beta = 1
+    rho = 1
+    iterCount = 50
+    modifyParam = int(input('Do you want to modify ACO parameters? (Default alpha = 1, beta = 1, rho = 1, number of iteration = 50)\n1. Yes\n2. No\n'))
+    if modifyParam == 1:
+        alpha = int(input('Please enter alpha: '))
+        beta = int(input('Please enter beta: '))
+        rho = int(input('Please enter rho: '))
+
+    # print('Creating Subgraph...')
+    # # Dummy user input
+    print(requestedNodes)
+    # requestedNodes = [5447, 5454, 5465, 5540, 5495, 5470, 5644, 5627]
+
     distanceMatrix = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
     pathMatrix = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
+    
     for i in range(len(requestedNodes)):
         for j in range(i, len(requestedNodes)):
+            print(f'i: {i}, j: {j}')
             path, cost = pathFinder.search(requestedNodes[i], requestedNodes[j])
             distanceMatrix[i][j] = distanceMatrix[j][i] = cost
             pathMatrix[i][j] = path
             pathMatrix[j][i] = path[::-1]
-        
 
     subgraph = nx.Graph()
     subgraph.add_nodes_from(requestedNodes)
@@ -45,20 +91,21 @@ if __name__ == '__main__':
     nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25)
     plt.show()
 
-    aco = ACO(50, 3, 10, 1, 1, 0, distanceMatrix)
+    aco = ACO(30, 2, 1, 1, 0, distanceMatrix)
     paths, cost = aco.solve()
     print('Raw Cost: ', cost)
     print('Raw Paths: ', paths)
     
     print('Drawing salesmen path on subgraph...')
-    colorList = ['green', 'blue', 'red', 'indigo', 'pink', 'orange', 'darkgreen', 'magenta', 'brown', 'purple', 'gold']
+    colorList = ['green', 'blue', 'red', 'indigo', 'pink', 'orange', 'darkgreen', 'magenta', 'brown', 'purple']
 
     subgraphPatch = []
     subgraphLabels = []
     subgraph.remove_edges_from(subgraph.edges())
     for path in paths:
         idx = paths.index(path)
-        subgraphPatch.append(Line2D([0], [0], color=colorList[idx], linewidth=3))
+        c = colorList[idx] if idx < len(colorList) else np.random.rand(3,)
+        subgraphPatch.append(Line2D([0], [0], color=c, linewidth=3))
         subgraphLabels.append(f'Salesman {idx + 1}, cost: {cost[idx]}')
         for i in range(len(path) - 1):
             subgraph.add_edge(requestedNodes[path[i]], requestedNodes[path[i + 1]], color = colorList[idx], labels=distanceMatrix[path[i]][path[i + 1]])
@@ -98,7 +145,7 @@ if __name__ == '__main__':
     resultRoadGraph.add_nodes_from(requestedNodes, color='crimson')
     colors = nx.get_node_attributes(resultRoadGraph,'color').values()
 
-    pos=nx.kamada_kawai_layout(resultRoadGraph)
+    pos=nx.spring_layout(resultRoadGraph)
 
     nx.draw(resultRoadGraph, pos, with_labels=True, dpi=100, edge_color=(0,0,0,0), node_color=colors)
 
@@ -108,8 +155,9 @@ if __name__ == '__main__':
     for edgeList in edgeLists:
         idx = edgeLists.index(edgeList)
         path = '-'.join(str(x) for x in pathDetails[idx])
-        resultRoadPatch.append(Line2D([0], [0], color=colorList[idx], linewidth=3))
-        resultRoadLabels.append(f'Salesman {idx + 1}: {path}')
+        c = colorList[idx] if idx < len(colorList) else np.random.rand(3,)
+        resultRoadPatch.append(Line2D([0], [0], color=c, linewidth=3))
+        resultRoadLabels.append(f'Salesman {idx + 1}: {cost[idx]}')
         
         nx.draw_networkx_edges(resultRoadGraph, pos, with_labels=True, edgelist = edgeList, connectionstyle=f'arc3, rad = {rad}', edge_color=colorList[idx])
         rad += 0.3
