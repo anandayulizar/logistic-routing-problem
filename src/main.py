@@ -9,80 +9,89 @@ from matplotlib.lines import Line2D
 from textwrap import wrap
 import random
 import time
+from copy import deepcopy
 
 if __name__ == '__main__':
     print('Welcome to Logistic Routing Problem Program! \nThis problem is a Multiple Traveling Salesman Problem (mTSP) that will be solved using Ant Colony Optimization.')
     townChoice = int(input('Please choose a town to be the test case!\n1. Oldenburgh\n2. San Fransisco\n'))
     selectedTown = 'OL' if townChoice == 1 else 'SF'
 
-    # Reading road data files to pandas
+    # Reading road data files
     dataPath = os.path.join(os.getcwd(), os.pardir, 'data')
 
     nodeFile = os.path.join(dataPath, selectedTown + '_node.txt')
     edgeFile = os.path.join(dataPath, selectedTown + '_edge.txt')
     pathFinder = A_Star(nodeFile, edgeFile)
 
-
-    # maxNode = len(pathFinder.getNodeDict().keys()) - 1
-    # inputChoice = int(input('How do you want to input the nodes?\n1. Input Manually\n2. Input Random Nodes\n'))
-    # n = int(input('Please enter the maximum number of nodes: '))
-    # requestedNodes = []
+    maxNode = len(pathFinder.getNodeDict().keys()) - 1
+    inputChoice = int(input('How do you want to input the nodes?\n1. Input Manually\n2. Input Random Nodes\n'))
+    n = int(input('Please enter the maximum number of nodes: '))
+    requestedNodes = []
+    print('The first node generated/inputted will be the depot')
     
+    # Generate or take user input to get list of nodes
+    if (inputChoice == 1):
+        print(f'Maximum node number: {maxNode}')
+        while len(requestedNodes) < n:
+            nodeInput = int(input('Please enter a new node:'))
+            if (nodeInput < maxNode and nodeInput not in requestedNodes):
+                requestedNodes.append(nodeInput)
+            else:
+                print('Please enter a unique node and below the maximum node')
+    else:
+        bound = int(input('Do you want to bound the generated random numbers to a range to speed up time? (The generated nodes will be in a range of 250)\n1. Yes\n2. No\n'))
+        if (bound == 1):
+            lowerBound = random.randint(0, maxNode - 250)
+            nodeList = list(range(lowerBound, lowerBound + 250))
+        else:
+            nodeList = list(range(maxNode))
+        random.shuffle(nodeList)
+        while len(requestedNodes) < n:
+            nodeInput = nodeList.pop()
+            requestedNodes.append(nodeInput)
 
-    # if (n == 1):
-    #     while len(requestedNodes) < n:
-    #         nodeInput = int(input('Please enter a new node:'))
-    #         if (nodeInput < maxNode):
-    #             requestedNodes.append(nodeInput)
-    # else:
-    #     bound = int(input('Do you want to bound the generated random numbers to a range to speed up time? (The generated nodes will be in a range of 250)\n1. Yes\n2. No\n'))
-    #     if (bound == 1):
-    #         lowerBound = random.randint(0, maxNode - 250)
-    #         nodeList = list(range(lowerBound, lowerBound + 250))
-    #     else:
-    #         nodeList = list(range(maxNode))
-    #     random.shuffle(nodeList)
-    #     while len(requestedNodes) < n:
-    #         nodeInput = nodeList.pop()
-    #         requestedNodes.append(nodeInput)
+    salesmanCount = int(input('Please enter the number of salesmen: '))
+    while (salesmanCount > (n / 2) - 1):
+        print('The number of salesman can\'t exceed half of requested nodes')
+        salesmanCount = int(input('Please enter the number of salesmen: '))
 
-    # salesmanCount = int(input('Please enter the number of salesmen: '))
-    # while (salesmanCount > (n / 2)):
-    #     print('The number of salesman can\'t exceed half of requested nodes')
-    #     salesmanCount = int(input('Please enter the number of salesmen: '))
-
-    # alpha = 1
-    # beta = 1
-    # rho = 1
-    # iterCount = 50
-    # modifyParam = int(input('Do you want to modify ACO parameters? (Default alpha = 1, beta = 1, rho = 1, number of iteration = 50)\n1. Yes\n2. No\n'))
-    # if modifyParam == 1:
-    #     alpha = int(input('Please enter alpha: '))
-    #     beta = int(input('Please enter beta: '))
-    #     rho = int(input('Please enter rho: '))
-
-    # print('Creating Subgraph...')
-    # # Dummy user input
-    
-    requestedNodes = [5447, 5454, 5465, 5540, 5495, 5470, 5644, 5627]
-    print(requestedNodes)
+    alpha = 1
+    beta = 1
+    rho = 1
+    iterCount = 50
+    modifyParam = int(input('Do you want to modify ACO parameters? (Default alpha = 1, beta = 1, rho = 1, number of iteration = 50)\n1. Yes\n2. No\n'))
+    if modifyParam == 1:
+        alpha = int(input('Please enter alpha: '))
+        beta = int(input('Please enter beta: '))
+        rho = int(input('Please enter rho: '))
 
     distanceMatrix = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
     pathMatrix = [[0 for j in range(len(requestedNodes))] for i in range(len(requestedNodes))]
     
+    # Creating distance matrix
     for i in range(len(requestedNodes)):
         for j in range(i, len(requestedNodes)):
-            print(f'i: {i}, j: {j}')
             path, cost = pathFinder.search(requestedNodes[i], requestedNodes[j])
             distanceMatrix[i][j] = distanceMatrix[j][i] = cost
             pathMatrix[i][j] = path
             pathMatrix[j][i] = path[::-1]
 
-    for distancePerCity in distanceMatrix:
-        for distance in distancePerCity:
-            print(distance, end=' ')
-        print()
+    # Printing distance matrix
+    distanceMatrixDisplayed = deepcopy(distanceMatrix)
+    for i in range(len(distanceMatrixDisplayed)):
+        distanceMatrixDisplayed[i].insert(0, str(requestedNodes[i]) + '|')
+    distanceMatrixDisplayed.insert(0, ['-' for i in range(len(requestedNodes) + 1)])
+    distanceMatrixDisplayed.insert(0, [''] + list(requestedNodes))
+    s = [[str(e) for e in row] for row in distanceMatrixDisplayed]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
 
+    print('Distance matrix generated: ')
+    print('\n'.join(table))
+
+    # Creating subgraph
+    userInput = input('Press any key to display subgraph...')
     subgraph = nx.Graph()
     subgraph.add_nodes_from(requestedNodes)
     for i in range(len(distanceMatrix)):
@@ -94,17 +103,21 @@ if __name__ == '__main__':
     colors = nx.get_edge_attributes(subgraph, 'color')
     
     nx.draw(subgraph, pos=nx.kamada_kawai_layout(subgraph), with_labels=True, dpi=100)
-    # nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.25)
     plt.show()
+    print('Click x to close the graph and continue...')
 
-    aco = ACO(30, 2, 1, 1, 0, distanceMatrix)
+    # Using ACO to find solution for mTSP
+    aco = ACO(30, salesmanCount, 1, 1, 0, distanceMatrix)
     paths, cost = aco.solve()
-    print('Raw Cost: ', cost)
-    print('Raw Paths: ', paths)
+    print('Paths generated: ')
+    for i in range(len(paths)):
+        print('Salesman ', i + 1, 'Path: ', '-'.join(str(x) for x in paths[i]), ' Cost: ', cost[i])
+    print(f'Total cost: {sum(cost)}')
     
-    print('Drawing salesmen path on subgraph...')
     colorList = ['green', 'blue', 'red', 'indigo', 'pink', 'orange', 'darkgreen', 'magenta', 'brown', 'purple']
-
+    
+    # Displaying mTSP solution on subgraph
+    print('Drawing salesmen path on subgraph...')
     subgraphPatch = []
     subgraphLabels = []
     subgraph.remove_edges_from(subgraph.edges())
@@ -121,12 +134,14 @@ if __name__ == '__main__':
     labels = nx.get_edge_attributes(subgraph, 'labels')
     subgraphLabels = [ '\n'.join(wrap(l, 20)) for l in subgraphLabels]
 
+    userInput = input('Press any key to display colored subgraph...')
     print('Displaying colored subgraph...')
     nx.draw(subgraph, pos=nx.kamada_kawai_layout(subgraph), with_labels=True, dpi=100)
     nx.draw_networkx_edges(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_color=colors)
     nx.draw_networkx_edge_labels(subgraph, pos=nx.kamada_kawai_layout(subgraph), edge_labels=labels, label_pos=0.5)
     plt.legend(subgraphPatch, subgraphLabels, loc='best')
     plt.show()
+    print('Click x to close the graph and continue...')
 
     print('Creating road path throughout the town...')
     resultRoadGraph = nx.MultiDiGraph()
@@ -169,11 +184,14 @@ if __name__ == '__main__':
         rad += 0.3
 
     resultRoadLabels = [ '\n'.join(wrap(l, 50)) for l in resultRoadLabels]
-    print('Displaying road graph')
+    userInput = input('Press any key to display road graph...')
+    print('Displaying road graph...')
     plt.legend(resultRoadPatch, resultRoadLabels, loc='best')
     plt.show()
+    print('Use full screen for better view!')
+    print('Click x to close the graph and continue...')
 
-    print('Finished')
+    print('Thank you!')
 
     
     
