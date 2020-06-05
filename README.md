@@ -93,13 +93,13 @@ pip install [nama-library]
 ## How to Run
 1. Buka folder dari repository ini
 2. Lakukan command 
-'''
+```
 cd src
-'''
+```
 3. Jalankan command
-'''
+```
 python main.py
-'''
+```
 4. Ikuti petunjuk yang terdapat pada program
 
 ## Referensi Penguji
